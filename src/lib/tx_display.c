@@ -20,12 +20,9 @@
 #include "tx_parser.h"
 #include "tx_display.h"
 #include "transaction.h"
-
-#if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 #include "os.h"
-#else
+
 #define PIC(X) X
-#endif
 
 // Required pages
 // FIXME: the required root items have been moved to a function due to PIC issues. Refactor and fix

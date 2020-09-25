@@ -174,32 +174,7 @@ void viewctl_display_page() {
                      viewctl.chunksIndex + 1,
                      viewctl.chunksCount);
         }
-
-#if defined(TARGET_NANOX)
         viewctl_dataValue_split();
-#elif defined(TARGET_NANOS)
-        switch (viewctl.scrolling_mode) {
-        case KEY_SCROLLING_NO_VALUE: {
-            viewctl_crop_key();
-            viewctl.scrolling_mode = VALUE_SCROLLING;
-            break;
-        }
-        case PENDING: {
-            viewctl.scrolling_mode = VALUE_SCROLLING;
-            if (strlen((char *) viewctl.dataKey) > MAX_SCREEN_LINE_WIDTH) {
-                int value_length = strlen((char *) viewctl.dataValue);
-                if (value_length > MAX_SCREEN_LINE_WIDTH) {
-                    strcpy((char *) viewctl.dataValue, "DBL-CLICK FOR VALUE");
-                    viewctl.scrolling_mode = KEY_SCROLLING_NO_VALUE;
-                } else {
-                    viewctl.scrolling_mode = KEY_SCROLLING_SHORT_VALUE;
-                }
-            }
-        }
-        default:
-            break;
-    }
-#endif
     }
 
     viewctl_display_ux();

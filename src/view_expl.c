@@ -27,7 +27,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#if defined(TARGET_NANOX)
 static const bagl_element_t viewexpl_bagl[] = {
     UI_BACKGROUND_LEFT_RIGHT_ICONS,
     UI_LabelLine(UIID_LABEL+0, 0, 9 + UI_11PX * 0, UI_SCREEN_WIDTH, UI_11PX, UI_WHITE, UI_BLACK, (const char *) viewctl.title),
@@ -88,80 +87,6 @@ static unsigned int viewexpl_bagl_button(
     }
     return 0;
 }
-
-#elif  defined(TARGET_NANOS)
-static const bagl_element_t viewexpl_bagl_valuescrolling[] = {
-    UI_BACKGROUND_LEFT_RIGHT_ICONS,
-    UI_LabelLine(UIID_LABEL + 0, 0, 8, UI_SCREEN_WIDTH, UI_11PX, UI_WHITE, UI_BLACK, (const char *) viewctl.title),
-    UI_LabelLine(UIID_LABEL + 1, 0, 19, UI_SCREEN_WIDTH, UI_11PX, UI_WHITE, UI_BLACK, (const char *) viewctl.dataKey),
-    UI_LabelLineScrolling(UIID_LABELSCROLL, 16, 30, 96, UI_11PX, UI_WHITE, UI_BLACK, (const char *) viewctl.dataValue),
-};
-
-static const bagl_element_t viewexpl_bagl_keyscrolling[] = {
-    UI_BACKGROUND_LEFT_RIGHT_ICONS,
-    UI_LabelLine(UIID_LABEL + 0, 0, 8, UI_SCREEN_WIDTH, UI_11PX, UI_WHITE, UI_BLACK, (const char *) viewctl.title),
-    UI_LabelLine(UIID_LABEL + 1, 0, 30, UI_SCREEN_WIDTH, UI_11PX, UI_WHITE, UI_BLACK, (const char *) viewctl.dataValue),
-    UI_LabelLineScrolling(UIID_LABELSCROLL, 16, 19, 96, UI_11PX, UI_WHITE, UI_BLACK, (const char *) viewctl.dataKey),
-};
-
-static unsigned int viewexpl_bagl_keyscrolling_button(
-        unsigned int button_mask,
-        unsigned int button_mask_counter) {
-    switch (button_mask) {
-        // Press both left and right to switch to value scrolling
-        case BUTTON_EVT_RELEASED | BUTTON_LEFT | BUTTON_RIGHT: {
-            if (viewctl.scrolling_mode == KEY_SCROLLING_NO_VALUE) {
-                viewctl_display_page();
-            } else {
-                viewctl_ehExit(0);
-            }
-            break;
-        }
-
-            // Press left to progress to the previous element
-        case BUTTON_EVT_RELEASED | BUTTON_LEFT: {
-            if (viewctl.chunksIndex > 0) {
-                submenu_left();
-            } else {
-                menu_left();
-            }
-            break;
-        }
-
-            // Hold left to progress to the previous element quickly
-            // It also steps out from the value chunk page view mode
-        case BUTTON_EVT_FAST | BUTTON_LEFT: {
-            menu_left();
-            break;
-        }
-
-            // Press right to progress to the next element
-        case BUTTON_EVT_RELEASED | BUTTON_RIGHT: {
-            if (viewctl.chunksIndex < viewctl.chunksCount - 1) {
-                submenu_right();
-            } else {
-                menu_right();
-            }
-            break;
-        }
-
-            // Hold right to progress to the next element quickly
-            // It also steps out from the value chunk page view mode
-        case BUTTON_EVT_FAST | BUTTON_RIGHT: {
-            menu_right();
-            break;
-        }
-    }
-    return 0;
-}
-
-static unsigned int viewexpl_bagl_valuescrolling_button(
-        unsigned int button_mask,
-        unsigned int button_mask_counter) {
-    return viewexpl_bagl_keyscrolling_button(button_mask, button_mask_counter);
-}
-
-#endif
 
 const bagl_element_t *viewexpl_bagl_prepro(const bagl_element_t *element) {
     switch (element->component.userid) {

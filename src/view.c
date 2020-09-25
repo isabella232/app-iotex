@@ -27,6 +27,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include "ux.h"
 
 viewctl_delegate_getData ehGetData = NULL;
 viewctl_delegate_accept ehAccept = NULL;
@@ -84,10 +85,6 @@ struct {
     uint32_t index;
 } view_addr_choose_data;
 
-
-#if defined(TARGET_NANOX)
-
-#include "ux.h"
 ux_state_t G_ux;
 bolos_ux_params_t G_ux_params;
 
@@ -129,63 +126,13 @@ const ux_flow_step_t *const ux_addr_flow [] = {
   FLOW_END_STEP,
 };
 
-UX_FLOW_DEF_VALID(ux_tx_flow_1_step, pbb, view_spm_show(0), { &C_icon_eye, "Review", "Sign Message" });
-UX_FLOW_DEF_VALID(ux_tx_flow_2_step, pbb, accept(0), { &C_icon_validate_14, "Sign", "Sign Message" });
-UX_FLOW_DEF_VALID(ux_tx_flow_3_step, pbb, reject(0), { &C_icon_crossmark, "Reject", "Sign Message" });
-const ux_flow_step_t *const ux_tx_flow [] = {
-  &ux_tx_flow_1_step,
-  &ux_tx_flow_2_step,
-  &ux_tx_flow_3_step,
-  FLOW_END_STEP,
-};
-
-#else
-
-// Nano S
-ux_state_t ux;
-
-const ux_menu_entry_t menu_transaction_info[] = {
-        {NULL, view_tx_show, 0, NULL, "View transaction", NULL, 0, 0},
-        {NULL, accept, 0, &C_icon_validate_14, "Sign", NULL, 60, 40},
-        {NULL, reject, 0, &C_icon_crossmark, "Reject", NULL, 60, 40},
-        UX_MENU_END
-};
-
-const ux_menu_entry_t menu_main[] = {
-#ifdef TESTING_ENABLED
-        {NULL, NULL, 0, &C_icon_app, "IoTeX", "application TEST!", 33, 12},
-#else
-        {NULL, NULL, 0, &C_icon_app, "IoTeX", "application", 33, 12},
-#endif
-        {NULL, view_addr_choose_show, 0, NULL, "Show Address", NULL, 0, 0},
-        {NULL, NULL, 0, NULL, "v"APPVERSION, NULL, 0, 0},
-        {NULL, os_sched_exit, 0, &C_icon_dashboard, "Quit app", NULL, 50, 29},
-        UX_MENU_END
-};
-
-const ux_menu_entry_t menu_status[] = {
-        {NULL, NULL, 0, &C_icon_app, viewctl.dataKey, viewctl.dataValue, 33, 12},
-        UX_MENU_END
-};
-
-const ux_menu_entry_t menu_sign_msg[] = {
-        {NULL, view_smsg_show, 0, NULL, "Sign Message", NULL, 0, 0},
-        {NULL, accept, 0, &C_icon_validate_14, "Sign", NULL, 60, 40},
-        {NULL, reject, 0, &C_icon_crossmark, "Reject", NULL, 60, 40},
-        UX_MENU_END
-};
-
-#endif
-
 static const bagl_element_t view_addr_choose[] = {
-        UI_FillRectangle(0, 0, 0, UI_SCREEN_WIDTH, UI_SCREEN_HEIGHT, 0x000000, 0xFFFFFF),
+    UI_FillRectangle(0, 0, 0, UI_SCREEN_WIDTH, UI_SCREEN_HEIGHT, 0x000000, 0xFFFFFF),
 
-        UI_LabelLine(UIID_LABEL + 0, 0, 9 + UI_11PX * 0, UI_SCREEN_WIDTH, UI_11PX, UI_WHITE, UI_BLACK,
-                     (const char *) viewctl.title),
-        UI_LabelLine(UIID_LABEL + 1, 0, 9 + UI_11PX * 1, UI_SCREEN_WIDTH, UI_11PX, UI_WHITE, UI_BLACK,
-                     (const char *) viewctl.dataKey),
-
-#if defined(TARGET_NANOX)
+    UI_LabelLine(UIID_LABEL + 0, 0, 9 + UI_11PX * 0, UI_SCREEN_WIDTH, UI_11PX, UI_WHITE, UI_BLACK,
+                    (const char *) viewctl.title),
+    UI_LabelLine(UIID_LABEL + 1, 0, 9 + UI_11PX * 1, UI_SCREEN_WIDTH, UI_11PX, UI_WHITE, UI_BLACK,
+                    (const char *) viewctl.dataKey),
     UI_Icon(UIID_ICONLEFT1, 2, 28, 4, 7, BAGL_GLYPH_ICON_LEFT),
     UI_Icon(UIID_ICONRIGHT1, 122, 28, 4, 7, BAGL_GLYPH_ICON_RIGHT),
     UI_Icon(UIID_ICONLEFT2, 2, 28, 4, 7, BAGL_GLYPH_ICON_LEFT),
@@ -198,16 +145,6 @@ static const bagl_element_t view_addr_choose[] = {
     UI_LabelLine(UIID_LABEL+3, 0, 9 + UI_11PX * 3, UI_SCREEN_WIDTH, UI_11PX, UI_WHITE, UI_BLACK, (const char *) viewctl.dataValueChunk[1]),
     UI_LabelLine(UIID_LABEL+4, 0, 9 + UI_11PX * 4, UI_SCREEN_WIDTH, UI_11PX, UI_WHITE, UI_BLACK, (const char *) viewctl.dataValueChunk[2]),
     UI_LabelLine(UIID_LABEL+5, 0, 9 + UI_11PX * 5, UI_SCREEN_WIDTH, UI_11PX, UI_WHITE, UI_BLACK, (const char *) viewctl.dataValueChunk[3]),
-#else
-    UI_Icon(UIID_ICONREJECT, 0, 0, 7, 7, BAGL_GLYPH_ICON_CROSS),
-    UI_Icon(UIID_ICONACCEPT, 128 - 7, 0, 7, 7, BAGL_GLYPH_ICON_CHECK),
-    UI_Icon(UIID_ICONLEFT1, 0, 0, 7, 7, BAGL_GLYPH_ICON_LEFT),
-    UI_Icon(UIID_ICONRIGHT1, 128 - 7, 0, 7, 7, BAGL_GLYPH_ICON_RIGHT),
-    UI_Icon(UIID_ICONLEFT2, 0, 9, 7, 7, BAGL_GLYPH_ICON_LEFT),
-    UI_Icon(UIID_ICONRIGHT2, 128 - 7, 9, 7, 7, BAGL_GLYPH_ICON_RIGHT),
-
-    UI_LabelLineScrolling(UIID_LABELSCROLL, 16, 30, 96, 11, UI_WHITE, UI_BLACK, (const char *) viewctl.dataValue),
-#endif
 };
 
 const bagl_element_t *view_addr_choose_prepro(const bagl_element_t *element) {
@@ -282,9 +219,7 @@ static unsigned int view_addr_choose_button(unsigned int button_mask, unsigned i
                     break;
                 case VIEW_ADDR_MODE_SHOW:
                     // DO NOTHING
-#if defined(TARGET_NANOX)
                     show_idle_menu();
-#endif
                     return 0;
                 case VIEW_ADDR_MODE_CONFIRM:
                     reject(0);
@@ -364,20 +299,13 @@ void view_init(void) {
 }
 
 void view_idle(unsigned int ignored) {
-#if defined(TARGET_NANOS)
-    UX_MENU_DISPLAY(0, menu_main, NULL);
-#elif defined(TARGET_NANOX)
     if(G_ux.stack_count == 0) {
         ux_stack_push();
     }
     ux_flow_init(0, ux_idle_flow, NULL);
-#endif
 }
 
 void view_status(unsigned int ignored) {
-#if defined(TARGET_NANOS)
-    UX_MENU_DISPLAY(0, menu_status, NULL);
-#endif
 }
 
 void view_tx_show(unsigned int start_page) {
@@ -448,40 +376,27 @@ void view_addr_confirm(unsigned int _) {
     view_addr_choose_data.index = BIP32_INDEX;
     view_addr_choose_update();
 
-#if defined(TARGET_NANOS)
-    view_addr_choose_refresh();
-#elif defined(TARGET_NANOX)
     if(G_ux.stack_count == 0) {
         ux_stack_push();
     }
     ux_flow_init(0, ux_addr_flow, NULL);
-#endif
 }
 
 void view_tx_menu(unsigned int unused) {
     UNUSED(unused);
-
-#if defined(TARGET_NANOS)
-    UX_MENU_DISPLAY(0, menu_transaction_info, NULL);
-#elif defined(TARGET_NANOX)
     if(G_ux.stack_count == 0) {
         ux_stack_push();
     }
     ux_flow_init(0, ux_tx_flow, NULL);
-#endif
 }
 
 void view_smsg_menu(unsigned int unused) {
     UNUSED(unused);
 
-#if defined(TARGET_NANOS)
-    UX_MENU_DISPLAY(0, menu_sign_msg, NULL);
-#elif defined(TARGET_NANOX)
     if(G_ux.stack_count == 0) {
         ux_stack_push();
     }
     ux_flow_init(0, ux_tx_flow, NULL);
-#endif
 }
 
 void view_set_handlers(viewctl_delegate_getData func_getData,

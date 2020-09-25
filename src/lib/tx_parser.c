@@ -22,7 +22,6 @@
 #include "os.h"
 
 #if defined(TARGET_NANOX) || defined(TARGET_NANOS)
-#include "os.h"
 #define COPYFUNC os_memmove
 #else
 #define COPYFUNC memcpy

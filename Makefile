@@ -86,7 +86,7 @@ SDK_SOURCE_PATH  += lib_ux
 else
 # Assume Nano S
 DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=128
-DEFINES += COMPLIANCE_UX_160 HAVE_UX_LEGACY HAVE_UX_FLOW
+DEFINES += COMPLIANCE_UX_160 HAVE_UX_FLOW
 endif
 
 # X specific
@@ -116,7 +116,7 @@ endif
 #########################
 
 CC := $(CLANGPATH)clang
-CFLAGS += -O3 -Os
+CFLAGS += -I/usr/include -O3 -Os
 
 AS := $(GCCPATH)arm-none-eabi-gcc
 AFLAGS +=
