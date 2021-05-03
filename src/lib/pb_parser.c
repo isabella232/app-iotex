@@ -573,7 +573,7 @@ decode_pb(const uint8_t *pb_data, uint32_t len, uint32_t *totalfields_out, int q
                 uint64_t msg_len = decode_varint(&pb_data[i], &skip_bytes, len - i);
                 i += skip_bytes;
 
-                if (i + msg_len > len) {
+                if ((i + msg_len > len) || (msg_len > UINT64_MAX - i)) {
                     return -DECODE_E_EMBMSG_LEN;
                 }
 
