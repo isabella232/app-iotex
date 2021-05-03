@@ -526,6 +526,10 @@ decode_pb(const uint8_t *pb_data, uint32_t len, uint32_t *totalfields_out, int q
                 size_t gas_str_len = decode_varint(&pb_data[i], &skip_bytes, len - i);;
                 i += skip_bytes;
 
+                if (gas_str_len > len - i) { // overflow
+                    return -1;
+                }
+
                 if (curid == queryid) {
                     int cpylen;
                     cpylen = min(gas_str_len, tx_ctx.query.out_val_len - 1);
