@@ -29,7 +29,7 @@
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
 uint64_t
-decode_varint(const uint8_t *buf, uint8_t *skip_bytes, uint8_t max_len) {
+decode_varint(const uint8_t *buf, uint8_t *skip_bytes, size_t max_len) {
     uint64_t result = 0;
     uint64_t val;
     uint8_t idx = 0;

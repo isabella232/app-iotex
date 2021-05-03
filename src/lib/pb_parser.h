@@ -66,5 +66,5 @@ typedef enum {
     DECODE_E_FIELD_NUMBER,
 } decode_error_t;
 
-uint64_t decode_varint(const uint8_t *buf, uint8_t *skip_bytes, uint8_t max_len);
+uint64_t decode_varint(const uint8_t *buf, uint8_t *skip_bytes, size_t max_len);
 int decode_pb(const uint8_t *pb_data, uint32_t len, uint32_t *totalfields, int queryid);
