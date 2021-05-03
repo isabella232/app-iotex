@@ -28,8 +28,8 @@
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
-uint64_t
-decode_varint(const uint8_t *buf, uint8_t *skip_bytes, size_t max_len) {
+int
+decode_varint(const uint8_t *buf, size_t max_len, uint64_t *v, uint8_t *skip_bytes) {
     uint64_t result = 0;
     uint64_t val;
     uint8_t idx = 0;
@@ -40,13 +40,29 @@ decode_varint(const uint8_t *buf, uint8_t *skip_bytes, size_t max_len) {
         result |= (val << (idx * 7));
 
         // no more bytes
-        if (!(buf[idx] & 0x80)) break;
-
+        if (!(buf[idx] & 0x80)) {
+            (*skip_bytes) = idx + 1;
+            *v = result;
+            return 0;
+        }
         idx++;
     }
+    return -DECODE_E_LENGTH;
+}
 
-    (*skip_bytes) = idx + 1;
-    return result;
+int
+decode_varint32(const uint8_t *buf, size_t max_len, uint32_t *v, uint8_t *skip_bytes) {
+    uint64_t value;
+    int ret;
+
+    if ((ret = decode_varint(buf, max_len, &value, skip_bytes)) != 0) {
+        return ret;
+    }
+    if (value > UINT32_MAX) {
+        return -DECODE_E_FIELD_NUMBER;
+    }
+    *v = value;
+    return 0;
 }
 
 char *
@@ -292,6 +308,7 @@ decode_action(const uint8_t *pb_data, uint8_t *skip_bytes_out, uint32_t len, uin
     uint32_t i = 0;
     uint32_t total = 0;
     int current_id = 0;
+    int ret;
 
     uint8_t wire_type;
     uint8_t skip_bytes;
@@ -358,7 +375,11 @@ decode_action(const uint8_t *pb_data, uint8_t *skip_bytes_out, uint32_t len, uin
     }
 
     while (i < len) {
-        header = decode_varint(pb_data + i, &skip_bytes, len - i);
+        uint64_t header;
+        if ((ret = decode_varint(pb_data + i, len - i, &header, &skip_bytes)) != 0) {
+            return ret;
+        }
+
         wire_type = PB_GET_WTYPE(header);
         field_number = PB_GET_FIELD(header);
         i += skip_bytes;
@@ -372,7 +393,10 @@ decode_action(const uint8_t *pb_data, uint8_t *skip_bytes_out, uint32_t len, uin
         current_field = action_field + field_number - 1;
 
         /* Decode a varint for ld msg is msg length, for varint is field value */
-        uint64_t number = decode_varint(pb_data + i, &skip_bytes, len - i);
+        uint64_t number;
+        if ((ret = decode_varint(pb_data + i, len - i, &number, &skip_bytes)) != 0) {
+            return ret;
+        }
         i += skip_bytes;
 
         if (IS_FILED_TYPE_LD(current_field->type) && (PB_WT_LD == wire_type)) {
@@ -452,7 +476,9 @@ decode_pb(const uint8_t *pb_data, uint32_t len, uint32_t *totalfields_out, int q
     int ret;
 
     while (i < len) {
-        header = decode_varint(&pb_data[i], &skip_bytes, len - i);
+        if ((ret = decode_varint(&pb_data[i], len - i, &header, &skip_bytes)) != 0) {
+            return ret;
+        }
         wire_type = PB_GET_WTYPE(header);
         field_number = PB_GET_FIELD(header);
         i += skip_bytes;
@@ -467,7 +493,9 @@ decode_pb(const uint8_t *pb_data, uint32_t len, uint32_t *totalfields_out, int q
                 totalfields++;
 
                 uint32_t version;
-                version = decode_varint(&pb_data[i], &skip_bytes, len - i);
+                if ((ret = decode_varint32(&pb_data[i], len - i, &version, &skip_bytes)) != 0) {
+                    return ret;
+                }
                 i += skip_bytes;
 
                 if (curid == queryid) {
@@ -486,7 +514,9 @@ decode_pb(const uint8_t *pb_data, uint32_t len, uint32_t *totalfields_out, int q
                 totalfields++;
 
                 uint64_t nonce;
-                nonce = decode_varint(&pb_data[i], &skip_bytes, len - i);
+                if ((ret = decode_varint(&pb_data[i], len - i, &nonce, &skip_bytes)) != 0) {
+                    return ret;
+                }
                 i += skip_bytes;
 
                 if (curid == queryid) {
@@ -505,7 +535,9 @@ decode_pb(const uint8_t *pb_data, uint32_t len, uint32_t *totalfields_out, int q
                 totalfields++;
 
                 uint64_t gas_limit;
-                gas_limit = decode_varint(&pb_data[i], &skip_bytes, len - i);
+                if ((ret = decode_varint(&pb_data[i], len - i, &gas_limit, &skip_bytes)) != 0) {
+                    return ret;
+                }
                 i += skip_bytes;
 
                 if (curid == queryid) {
@@ -523,7 +555,10 @@ decode_pb(const uint8_t *pb_data, uint32_t len, uint32_t *totalfields_out, int q
 
                 totalfields++;
 
-                size_t gas_str_len = decode_varint(&pb_data[i], &skip_bytes, len - i);;
+                size_t gas_str_len;
+                if ((ret = decode_varint(&pb_data[i], len - i, &gas_str_len, &skip_bytes)) != 0) {
+                    return ret;
+                }
                 i += skip_bytes;
 
                 if (gas_str_len > len - i) { // overflow
@@ -574,7 +609,10 @@ decode_pb(const uint8_t *pb_data, uint32_t len, uint32_t *totalfields_out, int q
                 }
 
                 /* Action length */
-                uint64_t msg_len = decode_varint(&pb_data[i], &skip_bytes, len - i);
+                uint64_t msg_len;
+                if ((ret = decode_varint(&pb_data[i], len - i, &msg_len, &skip_bytes)) != 0) {
+                    return ret;
+                }
                 i += skip_bytes;
 
                 if ((i + msg_len > len) || (msg_len > UINT64_MAX - i)) {
