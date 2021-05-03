@@ -523,7 +523,7 @@ decode_pb(const uint8_t *pb_data, uint32_t len, uint32_t *totalfields_out, int q
 
                 totalfields++;
 
-                int gas_str_len = decode_varint(&pb_data[i], &skip_bytes, len - i);;
+                size_t gas_str_len = decode_varint(&pb_data[i], &skip_bytes, len - i);;
                 i += skip_bytes;
 
                 if (curid == queryid) {
