@@ -112,7 +112,7 @@ utils_rau2iotx(const char *rau, size_t rau_len, char *iotx, size_t max) {
     static const size_t transform_factor = 18;
 
     /* iotx buffer too short or empty */
-    if (max < rau_len + 3 || max < transform_factor + 3 || !iotx) {
+    if (rau_len == 0 || max < rau_len + 3 || max < transform_factor + 3 || !iotx) {
         return NULL;
     }
 
