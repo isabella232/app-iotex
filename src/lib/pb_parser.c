@@ -32,7 +32,7 @@ int
 decode_varint(const uint8_t *buf, size_t max_len, uint64_t *v, uint8_t *skip_bytes) {
     uint64_t result = 0;
     uint64_t val;
-    uint8_t idx = 0;
+    size_t idx = 0;
 
     while (idx < max_len)
     {
